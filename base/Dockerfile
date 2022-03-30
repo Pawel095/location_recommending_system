@@ -17,6 +17,8 @@ SHELL [ "/bin/bash", "-c" ]
 RUN curl -s "https://get.sdkman.io" | bash
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open
 
+ENV JAVA_HOME=/root/.sdkman/candidates/java/current
+
 RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS
 RUN gpg --import KEYS
 ENV HADOOP_VERSION 3.2.3

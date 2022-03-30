@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  datanode:
+    build:
+      context: ./datanode
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
