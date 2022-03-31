@@ -25,7 +25,7 @@ services:
 
   resourcemanager:
     build:
-      context: ./resourcemanager    
+      context: ./resourcemanager
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
     env_file:
@@ -48,6 +48,18 @@ services:
     #   - hadoop_historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
+  executor:
+    container_name: localExecutor
+    build:
+      context: ./executor
+    volumes:
+      - ./executor/package:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DISPLAY=:0
+      - QT_X11_NO_MITSHM=1
+    env_file:
+      - hadoop.env
 
 # volumes:
 #   hadoop_namenode:
