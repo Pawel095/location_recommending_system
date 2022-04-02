@@ -54,37 +54,12 @@ def download_jars():
     sc.stop()
 
 
-def upload_jars():
-    mkdir = ["hdfs", "dfs", "-mkdir", "-p", HADOOP_JARS_PATH]
-    up = [
-        "hdfs",
-        f"dfs",
-        "-copyFromLocal",
-        jarsArchive,
-        HADOOP_JARS_PATH,
-    ]
-    subprocess.run(mkdir)
-    subprocess.run(up)
-
-
-def cleanup():
-    print(f"shutil.rmtree({ivyJarsCache})")
-    shutil.rmtree(ivyJarsCache)
-    print(f"shutil.rmtree({tempJarDir[:-1]})")
-    shutil.rmtree(tempJarDir[:-1])
-    print(f"remove({jarsArchive})")
-    remove(jarsArchive)
-
 
 def run():
     print("Downloading...")
     download_jars()
     print("Gathering...")
     gather_jars()
-    print("Uploading...")
-    upload_jars()
-    print("Cleanup...")
-    cleanup()
     print("Done!")
 
 

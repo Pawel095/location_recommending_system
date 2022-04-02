@@ -11,7 +11,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
     gnupg \
     curl \
     zip \
-    unzip
+    unzip \
+    pv
 
 SHELL [ "/bin/bash", "-c" ]
 RUN curl -s "https://get.sdkman.io" | bash
