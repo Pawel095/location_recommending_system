@@ -2,15 +2,17 @@ version: '3.8'
 
 services:
   datanode:
+    restart: unless-stopped
     build:
       context: ./datanode
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
     env_file:
       - ./hadoop.env
-    # volumes:
-    #   - datanode:/hadoop/dfs/data
+    volumes:
+      - datanode:/hadoop/dfs/data
   namenode:
+    restart: unless-stopped
     build:
       context: ./namenode
     ports:
@@ -20,10 +22,11 @@ services:
       - CLUSTER_NAME=test
     env_file:
       - ./hadoop.env
-    # volumes:
-    #   - namenode:/hadoop/dfs/name
+    volumes:
+      - namenode:/hadoop/dfs/name
 
   resourcemanager:
+    restart: unless-stopped
     build:
       context: ./resourcemanager
     environment:
@@ -31,6 +34,7 @@ services:
     env_file:
       - ./hadoop.env
   nodemanager:
+    restart: unless-stopped
     build:
       context: ./nodemanager
     environment:
@@ -38,14 +42,15 @@ services:
     env_file:
       - ./hadoop.env
   historyserver:
+    restart: unless-stopped
     build:
       context: ./historyserver
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     ports:
       - 8188:8188
-    # volumes:
-    #   - hadoop_historyserver:/hadoop/yarn/timeline
+    volumes:
+      - historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
   executor:
@@ -61,7 +66,7 @@ services:
     env_file:
       - hadoop.env
 
-# volumes:
-#   hadoop_namenode:
-#   hadoop_datanode:
-#   hadoop_historyserver:
+volumes:
+  namenode:
+  datanode:
+  historyserver:
