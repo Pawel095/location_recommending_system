@@ -4,7 +4,7 @@ HDFS_JARS_PATH="/spark/"
 JAR_ARCHIVE="jars.tar.gz"
 
 HDFS_MAP_PATH="/data"
-MAP_FOLDER="poland/"
+MAP_FOLDER="map/"
 
 collect_jars
 

@@ -2,8 +2,12 @@
 
 > HEAVILY INSPIRED BY: big-data-europe repositories at <https://github.com/big-data-europe>.
 
-TODO: create a script to upload spark jars to hdfs
+To acquire the map use <https://github.com/adrianulbona/osm-parquetizer> do build the parquet file. next copy the files to `./executor/package/map/`
 
-What is changed:
+## How to run
 
-* Updated packages to latest versions
+1. `prepare.bash` will build the base image
+2. `docker compose up --build` will build and create all necesary containers.
+3. `getExecutorShell.bash` and `prepopulateHDFS.bash` to upload required files to the hdfs
+
+Run `getExecutorShell.bash` to get the shell inside the docker network, to run pyspark apps
