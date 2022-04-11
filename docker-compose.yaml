@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     build:
       context: ./datanode
+    image: 192.168.2.1:5000/datanode
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
     env_file:
@@ -15,6 +16,7 @@ services:
     restart: unless-stopped
     build:
       context: ./namenode
+    image: 192.168.2.1:5000/namenode
     ports:
       - 9870:9870
       - 9000:9000
@@ -29,6 +31,7 @@ services:
     restart: unless-stopped
     build:
       context: ./resourcemanager
+    image: 192.168.2.1:5000/resourcemanager
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
     env_file:
@@ -37,6 +40,7 @@ services:
     restart: unless-stopped
     build:
       context: ./nodemanager
+    image: 192.168.2.1:5000/nodemanager
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     env_file:
@@ -45,6 +49,7 @@ services:
     restart: unless-stopped
     build:
       context: ./historyserver
+    image: 192.168.2.1:5000/historyserver
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     ports:
@@ -57,6 +62,7 @@ services:
     container_name: localExecutor
     build:
       context: ./executor
+    image: 192.168.2.1:5000/executor
     volumes:
       - ./executor/package:/app
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
