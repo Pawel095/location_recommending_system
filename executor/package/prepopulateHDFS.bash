@@ -17,7 +17,7 @@ echo Uploading jar archive
 pv $JAR_ARCHIVE | hdfs dfs -put - $HDFS_JARS_PATH$JAR_ARCHIVE
 
 echo Uploading map files:
-for file in `ls $MAP_FOLDER`; do
+for file in `ls -A $MAP_FOLDER`; do
     pv $MAP_FOLDER$file | hdfs dfs -put - $HDFS_MAP_PATH/$file
 done
 
