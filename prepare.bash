@@ -13,5 +13,8 @@ while [ $# -gt 0 ]; do
         docker image push ${REG_ADDR}/hadoop-base:local_latest
         shift
         ;;
+        -g) docker image pull ${REG_ADDR}/hadoop-base:local_latest
+        shift
+        ;;
     esac
 done
