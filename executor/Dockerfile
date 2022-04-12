@@ -11,6 +11,5 @@ COPY ./package/pyproject.toml /app
 RUN poetry export --without-hashes | pip install -r /dev/stdin
 COPY ./package /app
 RUN poetry install --no-dev
-RUN pyenv rehash
 
 CMD ["sleep","infinity"]
