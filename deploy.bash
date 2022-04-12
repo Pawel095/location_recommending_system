@@ -2,11 +2,11 @@
 
 while [ $# -gt 0 ]; do
     case $1 in 
-        --up) 
+        up) 
         docker stack deploy -c ./docker-compose.yml test1
         shift
         ;;
-        --down)
+        down)
         docker stack rm test1
         shift
         ;;

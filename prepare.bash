@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_image(){
+    docker-compose build
     docker build -t hadoop-base:local_latest ./base
 }
 
@@ -17,6 +18,7 @@ while [ $# -gt 0 ]; do
         build_image
         docker tag hadoop-base:local_latest ${REG_ADDR}/hadoop-base:local_latest
         docker image push ${REG_ADDR}/hadoop-base:local_latest
+        docker-compose push
         shift
         ;;
         -g)

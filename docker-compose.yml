@@ -85,7 +85,6 @@ services:
           - "node.labels.type==manager"
 
   executor:
-    container_name: localExecutor
     build:
       context: ./executor
     image: 192.168.2.1:5000/executor
@@ -95,12 +94,11 @@ services:
     environment:
       - DISPLAY=:0
       - QT_X11_NO_MITSHM=1
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088 historyserver:8188
     env_file:
       - hadoop.env
     deploy:
-      placement:
-        constraints:
-          - "node.labels.type==manager"
+      mode: global
 
 volumes:
   namenode:

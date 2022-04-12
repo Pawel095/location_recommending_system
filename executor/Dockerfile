@@ -12,4 +12,7 @@ RUN poetry export --without-hashes | pip install -r /dev/stdin
 COPY ./package /app
 RUN poetry install --no-dev
 
-CMD ["sleep","infinity"]
+COPY execute.bash /execute.bash
+RUN chmod a+x /execute.bash
+
+CMD ["/execute.bash"]
