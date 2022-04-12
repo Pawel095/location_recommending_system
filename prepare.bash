@@ -23,6 +23,7 @@ while [ $# -gt 0 ]; do
         ;;
         -g)
         docker image pull ${REG_ADDR}/hadoop-base:local_latest
+        docker-compose pull
         shift
         ;;
     esac
