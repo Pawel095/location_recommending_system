@@ -1,4 +1,3 @@
-from math import fabs
 from typing import Dict, Optional, Sequence
 from pyspark import SparkConf
 from pyspark import SparkContext
@@ -22,26 +21,30 @@ def process(df: DataFrame) -> DataFrame:
 
 
 conf = (
-    SparkConf().setAppName("getClosest")
-    # .setMaster("yarn")
-    # .set("spark.submit.deployMode", "client")
-    # .set("spark.yarn.archive", "hdfs://namenode:9000/spark/jars.tar.gz")
+    SparkConf()
+    .setAppName("getClosest")
+    .setMaster("yarn")
+    .set("spark.submit.deployMode", "client")
+    .set("spark.yarn.archive", "hdfs://namenode:9000/spark/jars.tar.gz")
 )
 
 sc = SparkContext(conf=conf)
 ss = SparkSession(sc)
-a = (
-    ss.read.parquet("hdfs:///data/poland.osm.pbf.way.parquet")
-    .transform(process)
-    .withColumn("nodes", toMapUdf(f.col("nodes")))
-)
-b = ss.read.parquet("hdfs:///data/poland.osm.pbf.relation.parquet").transform(process)
-c = ss.read.parquet("hdfs:///data/poland.osm.pbf.node.parquet").transform(process)
+from pprint import pp
+pp(sc.getConf().getAll())
+sc.parallelize([1, 2, 3, 4, 5, 6, 7, 8, 9]).sum()
+# a = (
+#     ss.read.parquet("hdfs:///data/poland.osm.pbf.way.parquet")
+#     .transform(process)
+#     .withColumn("nodes", toMapUdf(f.col("nodes")))
+# )
+# b = ss.read.parquet("hdfs:///data/poland.osm.pbf.relation.parquet").transform(process)
+# c = ss.read.parquet("hdfs:///data/poland.osm.pbf.node.parquet").transform(process)
 
-a.printSchema()
-b.printSchema()
-c.printSchema()
+# a.printSchema()
+# b.printSchema()
+# c.printSchema()
 
-a.repartition(1).write.parquet("hdfs:///temp/wayMap")
-b.repartition(1).write.parquet("hdfs:///temp/relationMap")
-c.repartition(1).write.parquet("hdfs:///temp/nodeMap")
+# a.repartition(1).write.parquet("hdfs:///temp/wayMap")
+# b.repartition(1).write.parquet("hdfs:///temp/relationMap")
+# c.repartition(1).write.parquet("hdfs:///temp/nodeMap")
