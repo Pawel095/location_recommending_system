@@ -1,8 +1,8 @@
 #!/bin/bash
 
 build_image(){
-    docker-compose build
     docker build -t hadoop-base:local_latest ./base
+    docker-compose build
 }
 
 REG_ADDR=192.168.2.1:5000
@@ -23,7 +23,11 @@ while [ $# -gt 0 ]; do
         ;;
         -g)
         docker image pull ${REG_ADDR}/hadoop-base:local_latest
-        docker-compose pull
+        docker-compose pull --no-parallel
+        shift
+        ;;
+        *)
+        echo unknown argument $1
         shift
         ;;
     esac

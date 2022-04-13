@@ -10,5 +10,9 @@ while [ $# -gt 0 ]; do
         docker stack rm test1
         shift
         ;;
+        *)
+        echo unknown argument $1
+        shift
+        ;;
     esac
 done

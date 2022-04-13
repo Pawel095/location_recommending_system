@@ -3,11 +3,13 @@ import tarfile
 import pyspark as pyspark_
 from pyspark import SparkConf, SparkContext
 from os.path import abspath, dirname, join, isfile
-from os import listdir, makedirs, remove
+from os import listdir, makedirs, remove, walk
 import shutil
+import glob
 
 DOWNLOAD_JARS = [
     "org.apache.sedona:sedona-python-adapter-3.0_2.12:1.1.1-incubating",
+    "org.apache.sedona:sedona-viz-3.0_2.12:1.1.1-incubating",
     "org.datasyslab:geotools-wrapper:1.1.0-25.2",
 ]
 HADOOP_JARS_PATH = "/spark"
@@ -21,13 +23,13 @@ ivyJarsPath = join(ivyJarsCache, "jars")
 sparkJarsPath = join(dirname(abspath(pyspark_.__file__)), "jars")
 
 tempJarDir = join(base_dir, "jars/")
-jarsArchive = join(base_dir, "jars.tar.gz")
+jarsArchive = join(base_dir, "jars.tar")
 
 
 def gather_jars():
     all_jars = []
-    for f in listdir(ivyJarsPath):
-        all_jars.append(join(ivyJarsPath, f))
+    for f in glob.glob(ivyJarsCache+"/**/.jar",recursive=True):
+        all_jars.append(f)
     for f in listdir(sparkJarsPath):
         all_jars.append(join(sparkJarsPath, f))
 
@@ -35,7 +37,7 @@ def gather_jars():
     for f in all_jars:
         shutil.copy(f, tempJarDir)
 
-    with tarfile.open(jarsArchive, "w:gz") as tf:
+    with tarfile.open(jarsArchive, "w") as tf:
         for f in listdir(tempJarDir):
             if isfile(join(tempJarDir, f)):
                 tf.add(join(tempJarDir, f), arcname=f)
@@ -52,7 +54,6 @@ def download_jars():
     )
     sc = SparkContext(conf=conf)
     sc.stop()
-
 
 
 def run():
