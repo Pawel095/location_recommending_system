@@ -107,8 +107,6 @@ services:
       - hadoop.env
     networks:
       - hadoop
-      - portainer-net
-      - swarmpit-net
     deploy:
       mode: global
 

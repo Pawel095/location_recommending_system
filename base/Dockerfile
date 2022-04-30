@@ -1,10 +1,12 @@
 FROM python:3.9.12-bullseye as build-geomesa
+
 RUN apt update && apt install zip unzip -y
 
 # build geomesa, and bundle python package
 SHELL [ "/bin/bash","-c" ]
 RUN curl -s "https://get.sdkman.io" | bash
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open && sdk install mvnd
+RUN pip install pyspark
 ENV JAVA_HOME=/root/.sdkman/candidates/java/current
 
 ENV GEOMESA_VERSION=3.4.0
@@ -13,14 +15,13 @@ WORKDIR /geomesa-build
 RUN git clone https://github.com/locationtech/geomesa.git
 WORKDIR /geomesa-build/geomesa
 RUN git checkout tags/geomesa-$GEOMESA_VERSION -b geomesa-$GEOMESA_VERSION
-RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd dependency:go-offline
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd clean
+RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd dependency:go-offline
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd install -Ppython -DskipTests
 RUN mkdir -p /packages/
 RUN cp geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$GEOMESA_VERSION.tar.gz /packages/
-RUN cp geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$GEOMESA_VERSION.tar.gz /packages/
 RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark-runtime/target/geomesa-fs-spark-runtime_2.12-${GEOMESA_VERSION}.jar /packages/
-RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark/target/geomesa-fs-spark_2.12-${GEOMESA_VERSION}.jar /packages/
+# RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark/target/geomesa-fs-spark_2.12-${GEOMESA_VERSION}.jar /packages/
 
 # FROM debian:11
 FROM python:3.9.12-bullseye
@@ -66,8 +67,10 @@ ENV MULTIHOMED_NETWORK=1
 ENV USER=root
 ENV PATH $HADOOP_HOME/bin/:$PATH
 
+# COPY --from=build-geomesa /geomesa-build/ /geomesa-build/
 COPY --from=build-geomesa /packages/ /packages/
-RUN pip install ./packages/geomesa_pyspark-3.4.0.tar.gz
+RUN pip install pyspark
+RUN pip install /packages/geomesa_pyspark-3.4.0.tar.gz
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
