@@ -7,13 +7,10 @@ from os import listdir, makedirs, remove, walk
 import shutil
 import glob
 
-DOWNLOAD_JARS = [
-    "org.apache.sedona:sedona-python-adapter-3.0_2.12:1.1.1-incubating",
-    "org.apache.sedona:sedona-viz-3.0_2.12:1.1.1-incubating",
-    "org.datasyslab:geotools-wrapper:1.1.0-25.2",
-]
+DOWNLOAD_JARS = []
 HADOOP_JARS_PATH = "/spark"
-HDFS_PATH = "/opt/hadoop-3.2.3/bin/hdfs"
+# ONLY ABSPATH HERE
+ADDITIONAL_JARS_PATHS = ["/packages/"]
 
 
 base_dir = abspath(join(dirname(abspath(__file__)), "..", ".."))
@@ -28,10 +25,15 @@ jarsArchive = join(base_dir, "jars.tar")
 
 def gather_jars():
     all_jars = []
-    for f in glob.glob(ivyJarsCache+"/**/.jar",recursive=True):
+    for f in glob.glob(ivyJarsCache + "/**/.jar", recursive=True):
         all_jars.append(f)
     for f in listdir(sparkJarsPath):
         all_jars.append(join(sparkJarsPath, f))
+    for path in ADDITIONAL_JARS_PATHS:
+        for f in listdir(path):
+            if "jar" in f:
+                all_jars.append(abspath(join(path, f)))
+    print(all_jars)
 
     makedirs(tempJarDir, exist_ok=True)
     for f in all_jars:

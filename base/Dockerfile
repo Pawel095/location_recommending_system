@@ -19,8 +19,8 @@ RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd install -Ppython -DskipTe
 RUN mkdir -p /packages/
 RUN cp geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$GEOMESA_VERSION.tar.gz /packages/
 RUN cp geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$GEOMESA_VERSION.tar.gz /packages/
-RUN cp /packages/geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark-runtime/target/geomesa-fs-spark-runtime_2.12-${GEOMESA_VERSION}.jar /packages/
-RUN cp /packages/geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark/target/geomesa-fs-spark-runtime_2.12-${GEOMESA_VERSION}.jar /packages/
+RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark-runtime/target/geomesa-fs-spark-runtime_2.12-${GEOMESA_VERSION}.jar /packages/
+RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark/target/geomesa-fs-spark_2.12-${GEOMESA_VERSION}.jar /packages/
 
 # FROM debian:11
 FROM python:3.9.12-bullseye
@@ -50,15 +50,16 @@ RUN gpg --import KEYS
 ENV HADOOP_VERSION 3.2.3
 ENV HADOOP_URL https://www.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
 
-RUN curl -fSL "$HADOOP_URL" -o /tmp/hadoop.tar.gz
-RUN curl -fSL "$HADOOP_URL.asc" -o /tmp/hadoop.tar.gz.asc
-RUN gpg --verify /tmp/hadoop.tar.gz.asc
-RUN tar -xvf /tmp/hadoop.tar.gz -C /opt/
-RUN rm /tmp/hadoop.tar.gz*
+RUN curl -fSL "$HADOOP_URL" -o /tmp/hadoop.tar.gz; \
+    curl -fSL "$HADOOP_URL.asc" -o /tmp/hadoop.tar.gz.asc; \
+    gpg --verify /tmp/hadoop.tar.gz.asc; \
+    tar -xvf /tmp/hadoop.tar.gz -C /opt/; \
+    rm /tmp/hadoop.tar.gz*
 
-RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
-RUN mkdir /opt/hadoop-$HADOOP_VERSION/logs
-RUN mkdir /hadoop-data
+RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop; \
+    mkdir /opt/hadoop-$HADOOP_VERSION/logs; \
+    mkdir /hadoop-data;
+
 ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=/etc/hadoop
 ENV MULTIHOMED_NETWORK=1
@@ -66,6 +67,7 @@ ENV USER=root
 ENV PATH $HADOOP_HOME/bin/:$PATH
 
 COPY --from=build-geomesa /packages/ /packages/
+RUN pip install ./packages/geomesa_pyspark-3.4.0.tar.gz
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh

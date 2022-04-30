@@ -206,6 +206,7 @@ services:
     environment:
       - EVENT_ENDPOINT=http://swarmpit-gui:8080/events
       - HEALTH_CHECK_ENDPOINT=http://swarmpit-gui:8080/version
+      - STATS_FREQUENCY=5
     deploy:
       mode: global
       resources:

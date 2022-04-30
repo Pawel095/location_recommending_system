@@ -8,9 +8,9 @@ authors = ["Paweł Pankiewicz <239565@edu.p.lodz.pl>"]
 python = "^3.9"
 pyspark = "^3.2.1"
 platformdirs = "^2.5.1"
-apache-sedona = "^1.1.1"
 hdfs = "^2.7.0"
 ptpython = "^3.0.20"
+geomesa-pyspark = {path = "../geomesa_pyspark-3.4.0.tar.gz"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
