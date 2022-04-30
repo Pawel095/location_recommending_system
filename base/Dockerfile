@@ -68,8 +68,8 @@ ENV USER=root
 ENV PATH $HADOOP_HOME/bin/:$PATH
 
 # COPY --from=build-geomesa /geomesa-build/ /geomesa-build/
-COPY --from=build-geomesa /packages/ /packages/
 RUN pip install pyspark
+COPY --from=build-geomesa /packages/ /packages/
 RUN pip install /packages/geomesa_pyspark-3.4.0.tar.gz
 
 ADD entrypoint.sh /entrypoint.sh
