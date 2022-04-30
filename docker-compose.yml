@@ -132,7 +132,7 @@ services:
     networks:
       - portainer-net
     ports:
-      - 9000:9000
+      - 7000:9000
     deploy:
       placement:
         constraints:
@@ -148,7 +148,7 @@ services:
     networks:
       - swarmpit-net
     ports:
-      - 8080:9001
+      - 7001:8080
     deploy:
       resources:
         limits:
@@ -199,12 +199,13 @@ services:
 
   swarmpit-agent:
     image: swarmpit/agent:latest
-    environment:
-      - DOCKER_API_VERSION=1.35
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - swarmpit-net
+    environment:
+      - EVENT_ENDPOINT=http://swarmpit-gui:8080/events
+      - HEALTH_CHECK_ENDPOINT=http://swarmpit-gui:8080/version
     deploy:
       mode: global
       resources:

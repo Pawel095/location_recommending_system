@@ -11,7 +11,7 @@ while [ $# -gt 0 ]; do
     case $1 in 
         -d) 
         build_image
-        docker run --rm -it base:latest /bin/bash
+        docker run --rm -it hadoop-base:local_latest /bin/bash
         shift
         ;;
         -p)
