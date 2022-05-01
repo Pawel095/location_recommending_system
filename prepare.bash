@@ -14,6 +14,10 @@ while [ $# -gt 0 ]; do
         docker run --rm -it hadoop-base:debug /bin/bash
         shift
         ;;
+        -b) 
+        build_image
+        shift
+        ;;
         -p)
         build_image
         docker tag hadoop-base:local_latest ${REG_ADDR}/hadoop-base:local_latest

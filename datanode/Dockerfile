@@ -2,7 +2,7 @@ FROM hadoop-base:local_latest
 
 EXPOSE 9864
 
-HEALTHCHECK CMD curl -f http://localhost:9864/ || exit 1
+HEALTHCHECK --start-period=60s CMD curl -f http://localhost:9864/ || exit 1
 
 ENV HDFS_CONF_dfs_datanode_data_dir=file:///hadoop/dfs/data
 RUN mkdir -p /hadoop/dfs/data

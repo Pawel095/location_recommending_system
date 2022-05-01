@@ -16,15 +16,15 @@ RUN git clone https://github.com/locationtech/geomesa.git
 WORKDIR /geomesa-build/geomesa
 RUN git checkout tags/geomesa-$GEOMESA_VERSION -b geomesa-$GEOMESA_VERSION
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd clean
-RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd dependency:go-offline
+# RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd dependency:go-offline
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd install -Ppython -DskipTests
 RUN mkdir -p /packages/
 RUN cp geomesa-fs/geomesa-fs-dist/target/geomesa-fs_2.12-3.4.0-bin.tar.gz /packages/
 
 
-# RUN tar -xvf /packages/geomesa-fs_2.12-3.4.0-bin.tar.gz -C /opt/;
-RUN wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${GEOMESA_VERSION}/geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz"
-RUN tar -xvf geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz -C /opt/
+RUN tar -xvf /packages/geomesa-fs_2.12-3.4.0-bin.tar.gz -C /opt/
+# RUN wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${GEOMESA_VERSION}/geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz"
+# RUN tar -xvf geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz -C /opt/
 
 ENV GEOMESA_HOME=/opt/geomesa-fs_2.12-3.4.0
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvnd dependency:copy-dependencies -pl geomesa-convert/geomesa-convert-osm/ \
