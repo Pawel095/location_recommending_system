@@ -10,8 +10,8 @@ REG_ADDR=192.168.2.1:5000
 while [ $# -gt 0 ]; do
     case $1 in 
         -d) 
-        build_image
-        docker run --rm -it hadoop-base:local_latest /bin/bash
+        docker build -t hadoop-base:debug ./base
+        docker run --rm -it hadoop-base:debug /bin/bash
         shift
         ;;
         -p)

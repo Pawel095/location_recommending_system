@@ -1,8 +1,8 @@
 #!/bin/bash
 
 while [ $# -gt 0 ]; do
-    case $1 in 
-        up) 
+    case $1 in
+        up)
         docker stack deploy -c ./docker-compose.yml test1
         shift
         ;;

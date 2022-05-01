@@ -11,6 +11,7 @@ platformdirs = "^2.5.1"
 hdfs = "^2.7.0"
 ptpython = "^3.0.20"
 geomesa-pyspark = {path = "../geomesa_pyspark-3.4.0.tar.gz"}
+Shapely = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

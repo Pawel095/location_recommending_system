@@ -1,9 +1,10 @@
-import geomesa_pyspark
+import geomesa_pyspark as g
+from geomesa_pyspark import types, spark
 from pyspark.find_spark_home import _find_spark_home as fsh
 import json
 
 conf = (
-    geomesa_pyspark.configure(
+    g.configure(
         spark_home=fsh(),
         jars=[
             "/packages/geomesa-fs-spark-runtime_2.12-3.4.0.jar",
@@ -42,7 +43,7 @@ def process(df: DataFrame) -> DataFrame:
 
 
 s = SparkSession.builder.config(conf=conf).getOrCreate()
-geomesa_pyspark.init_sql(s)
+g.init_sql(s)
 pp(s.sparkContext.getConf().getAll())
 
 a = (
@@ -53,19 +54,31 @@ a = (
 
 a.printSchema()
 a.show(1)
+a.createOrReplaceTempView("a")
 
 wp = s.sql("""select *, st_point(latitude,longitude) as point from a""")
+wp.show()
+
+gm = spark.GeoMesaSpark(s.sparkContext)
+rdd = gm.apply(
+    {
+        "fs.path": "hdfs://namenode:9000/geomesa_data/a",
+        "geomesa.fs.scheme": json.dumps(
+            {"name": "z2-2bits", "options": {"geom-attribute": "point"}}
+        ),
+    }
+)
 
 # BROKEN WIP, FIGURE OUT AND FIX
 
 # a.write.format("geomesa").options(
-#     **{
-#         "fs.path": "hdfs://namenode:9000/geomesa_data/a",
-#         "geomesa.feature": "asd",
-#         "geomesa.fs.scheme": json.dumps(
-#             {"name": "z2-2bits", "options": {"geom-attribute": "point"}}
-#         ),
-#     }
+    # **{
+    #     "fs.path": "hdfs://namenode:9000/geomesa_data/a",
+    #     "geomesa.feature": "asd",
+    #     "geomesa.fs.scheme": json.dumps(
+    #         {"name": "z2-2bits", "options": {"geom-attribute": "point"}}
+    #     ),
+    # }
 # ).save()
 
 repl()

@@ -11,7 +11,7 @@ services:
     env_file:
       - ./hadoop.env
     networks:
-      - hadoop
+      - hadoop-net
     volumes:
       - datanode:/hadoop/dfs/data
     deploy:
@@ -32,7 +32,7 @@ services:
     env_file:
       - ./hadoop.env
     networks:
-      - hadoop
+      - hadoop-net
     volumes:
       - namenode:/hadoop/dfs/name
     deploy:
@@ -50,7 +50,7 @@ services:
     env_file:
       - ./hadoop.env
     networks:
-      - hadoop
+      - hadoop-net
     deploy:
       placement:
         constraints:
@@ -66,7 +66,7 @@ services:
     env_file:
       - ./hadoop.env
     networks:
-      - hadoop
+      - hadoop-net
     deploy:
       placement:
         constraints:
@@ -86,7 +86,7 @@ services:
     env_file:
       - ./hadoop.env
     networks:
-      - hadoop
+      - hadoop-net
     deploy:
       placement:
         constraints:
@@ -106,12 +106,15 @@ services:
     env_file:
       - hadoop.env
     networks:
-      - hadoop
+      - hadoop-net
     deploy:
       mode: global
+      placement:
+        constraints:
+          - node.labels.executor != no
 
   portainer-agent:
-    image: portainer/agent
+    image: portainer/agent:2.11.1
     environment:
       AGENT_CLUSTER_ADDR: tasks.portainer-agent
     volumes:
@@ -123,7 +126,7 @@ services:
       mode: global
 
   portainer-gui:
-    image: portainer/portainer
+    image: portainer/portainer-ce:2.11.1-alpine
     command: -H tcp://tasks.portainer-agent:9001 --tlsskipverify
     volumes:
       - portainer-data:/data
@@ -136,87 +139,87 @@ services:
         constraints:
           - node.labels.gui_host == yes
 
-  swarmpit-gui:
-    image: swarmpit/swarmpit:latest
-    environment:
-      - SWARMPIT_DB=http://swarmpit-couchdb:5984
-      - SWARMPIT_INFLUXDB=http://swarmpit-influxdb:8086
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - swarmpit-net
-    ports:
-      - 7001:8080
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1024M
-        reservations:
-          cpus: '0.25'
-          memory: 512M
-      placement:
-        constraints:
-          - node.labels.gui_host == yes
+  # swarmpit-gui:
+  #   image: swarmpit/swarmpit:latest
+  #   environment:
+  #     - SWARMPIT_DB=http://swarmpit-couchdb:5984
+  #     - SWARMPIT_INFLUXDB=http://swarmpit-influxdb:8086
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   networks:
+  #     - swarmpit-net
+  #   ports:
+  #     - 7001:8080
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.50'
+  #         memory: 1024M
+  #       reservations:
+  #         cpus: '0.25'
+  #         memory: 512M
+  #     placement:
+  #       constraints:
+  #         - node.labels.gui_host == yes
 
-  swarmpit-couchdb:
-    image: couchdb:2.3.0
-    volumes:
-      - db-data:/opt/couchdb/data
-    networks:
-      - swarmpit-net
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 512M
-        reservations:
-          cpus: '0.15'
-          memory: 256M
-      placement:
-        constraints:
-          - node.labels.swarmpit_data_host == yes
+  # swarmpit-couchdb:
+  #   image: couchdb:2.3.0
+  #   volumes:
+  #     - db-data:/opt/couchdb/data
+  #   networks:
+  #     - swarmpit-net
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.30'
+  #         memory: 512M
+  #       reservations:
+  #         cpus: '0.15'
+  #         memory: 256M
+  #     placement:
+  #       constraints:
+  #         - node.labels.swarmpit_data_host == yes
 
-  swarmpit-influxdb:
-    image: influxdb:1.7
-    volumes:
-      - influx-data:/var/lib/influxdb
-    networks:
-      - swarmpit-net
-    deploy:
-      resources:
-        reservations:
-          cpus: '0.3'
-          memory: 128M
-        limits:
-          cpus: '0.6'
-          memory: 512M
-      placement:
-        constraints:
-          - node.labels.swarmpit_data_host == yes
+  # swarmpit-influxdb:
+  #   image: influxdb:1.7
+  #   volumes:
+  #     - influx-data:/var/lib/influxdb
+  #   networks:
+  #     - swarmpit-net
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         cpus: '0.3'
+  #         memory: 128M
+  #       limits:
+  #         cpus: '0.6'
+  #         memory: 512M
+  #     placement:
+  #       constraints:
+  #         - node.labels.swarmpit_data_host == yes
 
-  swarmpit-agent:
-    image: swarmpit/agent:latest
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - swarmpit-net
-    environment:
-      - EVENT_ENDPOINT=http://swarmpit-gui:8080/events
-      - HEALTH_CHECK_ENDPOINT=http://swarmpit-gui:8080/version
-      - STATS_FREQUENCY=5
-    deploy:
-      mode: global
-      resources:
-        limits:
-          cpus: '0.10'
-          memory: 64M
-        reservations:
-          cpus: '0.05'
-          memory: 32M
+  # swarmpit-agent:
+  #   image: swarmpit/agent:latest
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   networks:
+  #     - swarmpit-net
+  #   environment:
+  #     - EVENT_ENDPOINT=http://swarmpit-gui:8080/events
+  #     - HEALTH_CHECK_ENDPOINT=http://swarmpit-gui:8080/version
+  #     - STATS_FREQUENCY=5
+  #   deploy:
+  #     mode: global
+  #     resources:
+  #       limits:
+  #         cpus: '0.10'
+  #         memory: 64M
+  #       reservations:
+  #         cpus: '0.05'
+  #         memory: 32M
 
 networks:
-  hadoop:
+  hadoop-net:
     attachable: true
   portainer-net:
     attachable: true

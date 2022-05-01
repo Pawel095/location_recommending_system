@@ -19,11 +19,20 @@ RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd clean
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd dependency:go-offline
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd install -Ppython -DskipTests
 RUN mkdir -p /packages/
-RUN cp geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$GEOMESA_VERSION.tar.gz /packages/
-RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark-runtime/target/geomesa-fs-spark-runtime_2.12-${GEOMESA_VERSION}.jar /packages/
-# RUN cp /geomesa-build/geomesa/geomesa-fs/geomesa-fs-spark/target/geomesa-fs-spark_2.12-${GEOMESA_VERSION}.jar /packages/
+RUN cp geomesa-fs/geomesa-fs-dist/target/geomesa-fs_2.12-3.4.0-bin.tar.gz /packages/
 
-# FROM debian:11
+
+# RUN tar -xvf /packages/geomesa-fs_2.12-3.4.0-bin.tar.gz -C /opt/;
+RUN wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${GEOMESA_VERSION}/geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz"
+RUN tar -xvf geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz -C /opt/
+
+ENV GEOMESA_HOME=/opt/geomesa-fs_2.12-3.4.0
+RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvnd dependency:copy-dependencies -pl geomesa-convert/geomesa-convert-osm/ \
+    -DincludeScope=compile -DoutputDirectory=$GEOMESA_HOME/lib
+RUN cp geomesa-convert/geomesa-convert-osm/target/geomesa-convert-osm_2.12-$GEOMESA_VERSION.jar $GEOMESA_HOME/lib
+RUN rm -v $GEOMESA_HOME/lib/protobuf-java-2.5.0.jar
+RUN curl https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/2.6.1/protobuf-java-2.6.1.jar -o $GEOMESA_HOME/lib/protobuf-java-2.6.1.jar
+
 FROM python:3.9.12-bullseye
 
 # hadoop and sdkman dependencies
@@ -37,7 +46,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
     curl \
     zip \
     unzip \
-    pv
+    pv \
+    mc
 
 SHELL [ "/bin/bash", "-c" ]
 RUN curl -s "https://get.sdkman.io" | bash
@@ -65,12 +75,13 @@ ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=/etc/hadoop
 ENV MULTIHOMED_NETWORK=1
 ENV USER=root
-ENV PATH $HADOOP_HOME/bin/:$PATH
+ENV GEOMESA_HOME=/opt/geomesa-fs_2.12-3.4.0
+ENV PATH ${GEOMESA_HOME}/bin:$HADOOP_HOME/bin/:$PATH
 
 # COPY --from=build-geomesa /geomesa-build/ /geomesa-build/
-RUN pip install pyspark
 COPY --from=build-geomesa /packages/ /packages/
-RUN pip install /packages/geomesa_pyspark-3.4.0.tar.gz
+# RUN pip install /packages/geomesa_pyspark-3.4.0.tar.gz
+COPY --from=build-geomesa /opt/ /opt/
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
