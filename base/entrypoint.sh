@@ -115,4 +115,5 @@ do
     wait_for_it ${i}
 done
 
+echo STARTING!
 exec $@

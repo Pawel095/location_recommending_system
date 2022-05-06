@@ -15,6 +15,7 @@ Shapely = "^1.8.1"
 psycopg2-binary = "^2.9.3"
 SQLAlchemy = "^1.4.36"
 pandas = "^1.4.2"
+geographiclib = "^2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

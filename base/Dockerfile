@@ -20,11 +20,9 @@ RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd clean
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd install -Ppython -DskipTests
 RUN mkdir -p /packages/
 RUN cp geomesa-fs/geomesa-fs-dist/target/geomesa-fs_2.12-3.4.0-bin.tar.gz /packages/
-
+RUN cp geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$GEOMESA_VERSION.tar.gz /packages/
 
 RUN tar -xvf /packages/geomesa-fs_2.12-3.4.0-bin.tar.gz -C /opt/
-# RUN wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${GEOMESA_VERSION}/geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz"
-# RUN tar -xvf geomesa-fs_2.12-${GEOMESA_VERSION}-bin.tar.gz -C /opt/
 
 ENV GEOMESA_HOME=/opt/geomesa-fs_2.12-3.4.0
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && mvnd dependency:copy-dependencies -pl geomesa-convert/geomesa-convert-osm/ \
@@ -80,7 +78,8 @@ ENV PATH ${GEOMESA_HOME}/bin:$HADOOP_HOME/bin/:$PATH
 
 # COPY --from=build-geomesa /geomesa-build/ /geomesa-build/
 COPY --from=build-geomesa /packages/ /packages/
-# RUN pip install /packages/geomesa_pyspark-3.4.0.tar.gz
+COPY requirements.txt /requirements.txt
+RUN pip install -r requirements.txt
 COPY --from=build-geomesa /opt/ /opt/
 
 ADD entrypoint.sh /entrypoint.sh
