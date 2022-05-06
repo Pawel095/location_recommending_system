@@ -14,7 +14,9 @@ conf = (
         ],
     )
     .setAppName("getClosest")
-    .set("spark.driver.memory", "20G")
+    .set("spark.executor.memory", "15G")
+    .set("spark.driver.cores", "4")
+    .set("spark.executor.cores", "4")
 )
 
 from typing import Dict, Optional, Sequence
@@ -133,7 +135,7 @@ def prepare_test_data():
 
 
 #%%
-
+repl()
 
 nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
 nodes.createOrReplaceTempView("nodes")
@@ -145,11 +147,8 @@ city_centers = s.read.parquet(HDFS_BASE_ADDRESS + "/city_centers")
 test_data = s.read.parquet(HDFS_BASE_ADDRESS + "/geom_test_data")
 test_data.createOrReplaceTempView("test_data")
 
-
-repl()
-
-repa_distances = s.sql(
-"""
+joined = s.sql(
+    """
 select
     n.id as nid,
     n.tags as ntags,
@@ -160,11 +159,31 @@ select
     td.geom as tpoint
 from nodes as n
 cross join test_data as td
-""").repartition(16,f.col("nid"))
-repa_distances.write.parquet("hdfs:///distances_temp")
-repa_distances = s.read.parquet("hdfs:///distances_temp")
+"""
+).repartition(16, f.col("nid"))
+# joined.write.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
+# joined = s.read.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
+joined.createOrReplaceTempView("joined")
 
-dist_meters = repa_distances.withColumn("dist_meters", distance_in_metersUdf(f.col("npoint"), f.col("tpoint")))
+
+s.sql(
+    """
+select
+    *,
+    st_distance(npoint,tpoint) as latlon_dist
+    from joined
+"""
+).createOrReplaceTempView("distances")
+mindist = s.sql(
+    "select *, MIN(latlon_dist) over (partition by nid order by latlon_dist) as mindist from distances"
+)
+matched = mindist.filter("latlon_dist == mindist")
+matched.write.parquet("hdfs:///matched_test_data")
+matched = s.read.parquet("hdfs:///matched_test_data")
+
+close_to_nodes = matched.withColumn(
+    "dist_meters", distance_in_metersUdf(f.col("npoint"), f.col("tpoint"))
+).filter("dist_meters < 10")
 
 
 
@@ -214,6 +233,7 @@ dist_meters = repa_distances.withColumn("dist_meters", distance_in_metersUdf(f.c
 # s.sql("select nid, cctags.name from md where d=mindist").show()
 
 # TODO: Uzyj google collaba aby przeliczyć jaki node jest najbliżej jakiego centrum. wstawić nodes i city centers jako parquet, prezliczyć na collabie
+# TODO: do tego powyżej. na collabie będzie trzeba bez geomesa, bo nie działa na yarnie
 
 
 # a = s.read.format("geomesa").options(**{"fs.path":"hdfs://namenode:9000/geomesa_poland_n","geomesa.feature":"node"}).load()
