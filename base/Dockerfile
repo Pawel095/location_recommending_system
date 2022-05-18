@@ -49,7 +49,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
 
 SHELL [ "/bin/bash", "-c" ]
 RUN curl -s "https://get.sdkman.io" | bash
-RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open && sdk install mvnd
+RUN source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open
 ENV JAVA_HOME=/root/.sdkman/candidates/java/current
 
 SHELL [ "/bin/bash","-c" ]

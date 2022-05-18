@@ -17,7 +17,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.type==executor"
+          - "node.labels.hdfs==datastore"
 
   namenode:
     restart: unless-stopped
@@ -38,7 +38,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.type==manager"
+          - "node.labels.hdfs==datastore"
 
   resourcemanager:
     restart: unless-stopped
@@ -54,7 +54,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.type==executor"
+          - "node.labels.hdfs==not-datastore"
 
   nodemanager:
     restart: unless-stopped
@@ -70,7 +70,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.type==executor"
+          - "node.labels.hdfs==datastore"
 
   historyserver:
     restart: unless-stopped
@@ -81,8 +81,8 @@ services:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     ports:
       - 8188:8188
-    volumes:
-      - historyserver:/hadoop/yarn/timeline
+    # volumes:
+    #   - historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
     networks:
@@ -90,7 +90,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.type==manager"
+          - "node.labels.hdfs==not-datastore"
 
   executor:
     build:

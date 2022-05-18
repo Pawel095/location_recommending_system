@@ -1,4 +1,5 @@
 #%%
+from fileinput import close
 import geomesa_pyspark as g
 from geomesa_pyspark import types, spark
 from pyspark.find_spark_home import _find_spark_home as fsh
@@ -15,8 +16,7 @@ conf = (
     )
     .setAppName("getClosest")
     .set("spark.executor.memory", "15G")
-    .set("spark.driver.cores", "4")
-    .set("spark.executor.cores", "4")
+    .set("spark.executor.cores", "16")
 )
 
 from typing import Dict, Optional, Sequence
@@ -26,6 +26,7 @@ import pyspark.sql.functions as f
 from pprint import pp
 
 HDFS_BASE_ADDRESS = "hdfs:///data_checkpoints/"
+
 
 #%%
 def toMap(key: str, value: str, decode=True) -> Optional[Dict[str, str]]:
@@ -78,39 +79,94 @@ def repl():
 
 s = SparkSession.builder.config(conf=conf).getOrCreate()
 s.sparkContext.setCheckpointDir("hdfs:///spark_checkpoints")
+s.sparkContext.setLogLevel("INFO")
 
 g.init_sql(s)
 pp(s.sparkContext.getConf().getAll())
+COMBINED_TAG_FILTER = (
+    f.col("tags.amenity").isin(
+        [
+            "bar",
+            "biergarten",
+            "cafe",
+            "fast_food",
+            "food_court",
+            "ice_cream",
+            "pub",
+            "restaurant",
+            "arts_centre",
+            "casino",
+            "cinema",
+            "community_centre",
+            "conference_centre",
+            "events_venue",
+            "pharmacy",
+            "planetarium",
+            "studio",
+            "gym",
+            "internet_cafe",
+        ]
+    )
+    | f.col("tags.leisure").isin(
+        [
+            "adult_gaming_centre",
+            "amusement_arcade",
+            "beach_resort",
+            "bowling_alley",
+            "disc_golf_course",
+            "dog_park",
+            "escape_game",
+            "fitness_centre",
+            "golf_course",
+            "hackerspace",
+            "ice_rink",
+            "miniature_golf",
+            "resort",
+            "sports_centre",
+            "sports_hall",
+            "swimming_area",
+            "swimming_pool",
+            "water_park",
+        ]
+    )
+    | f.col("tags.shop").isNotNull()
+) & f.col("tags.name").isNotNull()
 
 
 def prepare_and_filter_nodes():
-    nodes = s.read.parquet("hdfs:///data/lodzkie.osm.pbf.node.parquet").transform(
+    s.read.parquet("hdfs:///data/lodzkie.osm.pbf.node.parquet").transform(
         drop_columns_and_mappify_tags
-    )
-    nodes.write.parquet(HDFS_BASE_ADDRESS + "/n_mappified")
-
-    nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/n_mappified")
-    nodes.createOrReplaceTempView("nodes")
-    nodes = s.sql("""select *,st_point(latitude,longitude) as geom from nodes""")
-    nodes.write.parquet(HDFS_BASE_ADDRESS + "/n_withPoints")
-
-    nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/n_withPoints")
-    nodes.createOrReplaceTempView("nodes")
-
+    ).createOrReplaceTempView("nodes")
     nodes = s.sql(
-        """
-    select
-        *
-    from nodes
-    where
-        tags.shop is not null OR
-        tags.leisure is not null OR
-        tags.amenity is not null
-    """
+        """select *,st_point(latitude,longitude) as geom from nodes"""
+    ).repartitionByRange(16, "id")
+    nodes.write.parquet(HDFS_BASE_ADDRESS + "/nodes")
+    nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/nodes")
+
+    ways = s.read.parquet(
+        "hdfs:///data/lodzkie.osm.pbf.way.parquet"
+    ).repartitionByRange(16, "id")
+    ways = ways.transform(drop_columns_and_mappify_tags)
+    ways = (
+        ways.withColumn("nodes", nodesUdf(f.col("nodes")))
+        .withColumn("nid", f.explode(f.map_values(f.col("nodes"))))
+        .repartitionByRange(16, "nid")
+    )
+    ways.write.parquet(HDFS_BASE_ADDRESS + "/ways_with_nids")
+    ways = s.read.parquet(HDFS_BASE_ADDRESS + "/ways_with_nids")
+
+    nodes = (
+        nodes.alias("n")
+        .join(ways.alias("w"), nodes.id == ways.nid, how="FULL")
+        .withColumn("tags_concat", f.map_concat("n.tags", "w.tags"))
+        .select("n.*")
+        .withColumnRenamed("tags_concat", "tags")
+        .filter(COMBINED_TAG_FILTER)
     )
     nodes.write.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
 
 
+# TODO: update to use unfiltered nodes
 def filter_city_centers():
     city_centers = s.sql(
         """select * from nodes where (nodes.tags.place == "village" or nodes.tags.plade == "town" or nodes.tags.place == "city") and tags.name is not null """
@@ -130,22 +186,24 @@ def prepare_test_data():
 # Use theese 3 functions to load and prepare data
 
 # prepare_and_filter_nodes()
+# s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered").createOrReplaceTempView("nodes")
 # filter_city_centers()
 # prepare_test_data()
 
 
 #%%
-repl()
+
 
 nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
 nodes.createOrReplaceTempView("nodes")
-
-
-city_centers = s.read.parquet(HDFS_BASE_ADDRESS + "/city_centers")
 #%%
 
 test_data = s.read.parquet(HDFS_BASE_ADDRESS + "/geom_test_data")
 test_data.createOrReplaceTempView("test_data")
+
+s.sparkContext.setLogLevel("WARN")
+repl()
+
 
 joined = s.sql(
     """
@@ -160,9 +218,9 @@ select
 from nodes as n
 cross join test_data as td
 """
-).repartition(16, f.col("nid"))
-# joined.write.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
-# joined = s.read.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
+).repartitionByRange(16, "nid")
+joined.write.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
+joined = s.read.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
 joined.createOrReplaceTempView("joined")
 
 
@@ -174,17 +232,18 @@ select
     from joined
 """
 ).createOrReplaceTempView("distances")
+
 mindist = s.sql(
-    "select *, MIN(latlon_dist) over (partition by nid order by latlon_dist) as mindist from distances"
+    "select *, MIN(latlon_dist) over (partition by tid) as mindist from distances"
 )
-matched = mindist.filter("latlon_dist == mindist")
-matched.write.parquet("hdfs:///matched_test_data")
-matched = s.read.parquet("hdfs:///matched_test_data")
+matched = mindist.filter("latlon_dist == mindist").repartitionByRange(16, "nid")
+matched.write.parquet(HDFS_BASE_ADDRESS + "/matched_test_data")
+matched = s.read.parquet(HDFS_BASE_ADDRESS + "/matched_test_data")
 
 close_to_nodes = matched.withColumn(
     "dist_meters", distance_in_metersUdf(f.col("npoint"), f.col("tpoint"))
 ).filter("dist_meters < 10")
-
+close_to_nodes.write.json("/asd")
 
 
 #%%
