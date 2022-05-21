@@ -2,7 +2,6 @@ from ptpython.repl import embed
 
 
 def run():
-    
     embed(globals(), locals())
 
 

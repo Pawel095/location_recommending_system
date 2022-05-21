@@ -1,6 +1,7 @@
 FROM hadoop-base:local_latest
 
-RUN apt update && apt install -y chromium mc
+# RUN apt update && apt install -y chromium mc
+RUN apt update && apt install -y mc
 
 RUN pip install poetry
 RUN poetry config virtualenvs.create false

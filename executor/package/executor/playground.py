@@ -162,6 +162,7 @@ def prepare_and_filter_nodes():
         .select("n.*")
         .withColumnRenamed("tags_concat", "tags")
         .filter(COMBINED_TAG_FILTER)
+        .repartitionByRange(16, "id")
     )
     nodes.write.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
 
@@ -179,7 +180,7 @@ def prepare_test_data():
     test_data.createOrReplaceTempView("test_data")
     test_data = s.sql(
         """select *,st_point(latitude,longitude) as geom from test_data"""
-    )
+    ).repartitionByRange(16, "id")
     test_data.write.parquet(HDFS_BASE_ADDRESS + "/geom_test_data")
 
 
@@ -192,7 +193,8 @@ def prepare_test_data():
 
 
 #%%
-
+s.sparkContext.setLogLevel("WARN")
+repl()
 
 nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
 nodes.createOrReplaceTempView("nodes")
@@ -201,24 +203,22 @@ nodes.createOrReplaceTempView("nodes")
 test_data = s.read.parquet(HDFS_BASE_ADDRESS + "/geom_test_data")
 test_data.createOrReplaceTempView("test_data")
 
-s.sparkContext.setLogLevel("WARN")
-repl()
 
-
-joined = s.sql(
-    """
-select
-    n.id as nid,
-    n.tags as ntags,
-    n.geom as npoint,
-    td.id as tid,
-    td.accuracy as taccuracy,
-    td.altitude as taltitude,
-    td.geom as tpoint
-from nodes as n
-cross join test_data as td
-"""
-).repartitionByRange(16, "nid")
+joined = (
+    nodes.alias("n")
+    .join(test_data.alias("td"), how="cross")
+    .selectExpr(
+        [
+            "n.id as nid",
+            "n.tags as ntags",
+            "n.geom as npoint",
+            "td.id as tid",
+            "td.accuracy as taccuracy",
+            "td.altitude as taltitude",
+            "td.geom as tpoint",
+        ]
+    )
+)
 joined.write.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
 joined = s.read.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
 joined.createOrReplaceTempView("joined")
@@ -242,58 +242,5 @@ matched = s.read.parquet(HDFS_BASE_ADDRESS + "/matched_test_data")
 
 close_to_nodes = matched.withColumn(
     "dist_meters", distance_in_metersUdf(f.col("npoint"), f.col("tpoint"))
-).filter("dist_meters < 10")
+).filter("dist_meters < taccuracy + 3")
 close_to_nodes.write.json("/asd")
-
-
-#%%
-
-# TEMPORARY CACHE.
-
-
-# distances = s.sql(
-#     """
-# select
-#     n.id as nid,
-#     td.id as tdid,
-#     st_distance(n.geom,td.geom) as d
-# from nodes as n
-# cross join geom_test_data as td
-# """
-# )
-# distances.cache()
-
-
-# points = nodes.limit(5).cache()
-# points.createOrReplaceTempView("nodes")
-# points.show()
-
-
-# cw = city_centers.limit(5).cache()
-# cw.show()
-
-
-# cw.createOrReplaceTempView("city_centers")
-# distances = s.sql(
-#     """
-#     select
-#         n.id as nid,
-#         cc.id as cid,
-#         cc.tags as cctags,
-#         st_distance(n.geom,cc.geom) as d
-#     from nodes as n
-#     cross join city_centers as cc"""
-# ).cache()
-# distances.createOrReplaceTempView("d")
-# mindist = s.sql("""select *, MIN(D) over (partition by nid order by d) as mindist from d""").cache()
-
-
-# mindist.createOrReplaceTempView("md")
-# s.sql("select nid, cctags.name from md where d=mindist").show()
-
-# TODO: Uzyj google collaba aby przeliczyć jaki node jest najbliżej jakiego centrum. wstawić nodes i city centers jako parquet, prezliczyć na collabie
-# TODO: do tego powyżej. na collabie będzie trzeba bez geomesa, bo nie działa na yarnie
-
-
-# a = s.read.format("geomesa").options(**{"fs.path":"hdfs://namenode:9000/geomesa_poland_n","geomesa.feature":"node"}).load()
-# b = s.read.format("geomesa").options(**{"fs.path":"hdfs://namenode:9000/geomesa_poland_w","geomesa.feature":"ways"}).load()

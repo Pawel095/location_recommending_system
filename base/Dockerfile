@@ -16,7 +16,6 @@ RUN git clone https://github.com/locationtech/geomesa.git
 WORKDIR /geomesa-build/geomesa
 RUN git checkout tags/geomesa-$GEOMESA_VERSION -b geomesa-$GEOMESA_VERSION
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd clean
-# RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd dependency:go-offline
 RUN source "$HOME/.sdkman/bin/sdkman-init.sh" &&  mvnd install -Ppython -DskipTests
 RUN mkdir -p /packages/
 RUN cp geomesa-fs/geomesa-fs-dist/target/geomesa-fs_2.12-3.4.0-bin.tar.gz /packages/
