@@ -24,10 +24,20 @@ build_image(){
     docker-compose build
 }
 
+build_image_no_cache(){
+    docker build --no-cache -t hadoop-base:local_latest ./base
+    docker-compose build --no-cache
+}
+
 REG_ADDR=192.168.2.1:5000
 
 while [ $# -gt 0 ]; do
     case $1 in 
+        --no-cache)
+        update_base_packages
+        build_image_no_cache
+        shift
+        ;;
         -d)
         update_base_packages
         docker build -t hadoop-base:debug ./base
@@ -40,8 +50,6 @@ while [ $# -gt 0 ]; do
         shift
         ;;
         -p)
-        update_base_packages
-        build_image
         docker tag hadoop-base:local_latest ${REG_ADDR}/hadoop-base:local_latest
         docker image push ${REG_ADDR}/hadoop-base:local_latest
         docker-compose push
