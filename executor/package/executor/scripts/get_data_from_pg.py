@@ -35,7 +35,7 @@ def run():
         "cast(accuracy as double) as accuracy",
         "cast(altitude as double) as altitude",
     )
-    df.write.parquet("hdfs:///test_data")
+    df.write.parquet("hdfs:///data/test_data")
 
 
 if __name__ == "__main__":

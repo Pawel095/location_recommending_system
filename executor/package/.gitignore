@@ -2,3 +2,4 @@ ivyJarsCache
 jars
 map
 parquetMapped
+geomesa_pyspark*

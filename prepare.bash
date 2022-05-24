@@ -2,6 +2,8 @@
 
 
 update_base_packages(){
+    # build executor package and copy to here
+    (cd executor/package ; poetry build) && cp executor/package/dist/executor-0.1.0-py3-none-any.whl base/executor-0.1.0-py3-none-any.whl
     # export all packages (with versions) from executor to base image
     (cd executor/package ; poetry export --without-hashes) > base/temp.txt
     echo "" > base/requirements.txt 
@@ -13,6 +15,7 @@ update_base_packages(){
     sed -n '/geographiclib/p' base/temp.txt >> base/requirements.txt
     rm -v base/temp.txt
     echo /packages/geomesa_pyspark-3.4.0.tar.gz >> base/requirements.txt
+    echo /packages/executor-0.1.0-py3-none-any.whl >> base/requirements.txt
 }
 
 
@@ -28,7 +31,7 @@ while [ $# -gt 0 ]; do
         -d)
         update_base_packages
         docker build -t hadoop-base:debug ./base
-        docker run --rm -it hadoop-base:debug /bin/bash
+        # docker run --rm -it hadoop-base:debug /bin/bash
         shift
         ;;
         -b)
