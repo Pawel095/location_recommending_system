@@ -18,7 +18,7 @@ geographiclib = "^2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
-# geomesa is in dev only to fix build errors in dockerfile, toehrwise pip fails to install
+# geomesa is in dev only to fix build errors in dockerfile, otherwise pip fails to install
 geomesa-pyspark = {path = "geomesa_pyspark-3.4.0.tar.gz"}
 
 [tool.poetry.scripts]
