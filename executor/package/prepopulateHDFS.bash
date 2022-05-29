@@ -18,3 +18,4 @@ for file in `ls -A $MAP_FOLDER`; do
 done
 
 preprocess_data
+build_als

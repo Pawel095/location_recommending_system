@@ -23,52 +23,10 @@ from typing import Dict, Optional, Sequence
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession, Row, types as t, DataFrame
 import pyspark.sql.functions as f
+from pyspark.mllib.recommendation import ALS, Rating, MatrixFactorizationModel
 from pprint import pp
 
 HDFS_BASE_ADDRESS = "hdfs:///data_checkpoints/"
-
-
-#%%
-def toMap(key: str, value: str, decode=True) -> Optional[Dict[str, str]]:
-    def __proc(tupleArray: Sequence[Row]):
-        if tupleArray is None:
-            return
-        return {
-            e[key].decode("utf-8")
-            if decode
-            else e[key]: e[value].decode("utf-8")
-            if decode
-            else e[value]
-            for e in tupleArray
-        }
-
-    return __proc
-
-
-tupleUdf = f.udf(toMap("key", "value"), t.MapType(t.StringType(), t.StringType()))
-nodesUdf = f.udf(
-    toMap("index", "nodeId", decode=False), t.MapType(t.IntegerType(), t.LongType())
-)
-#%%
-
-
-def distance_in_meters(p1: shapely.geometry.Point, p2: shapely.geometry.Point):
-    from geographiclib.geodesic import Geodesic
-
-    geodesic = Geodesic.WGS84
-    return geodesic.Inverse(p1.x, p1.y, p2.x, p2.y)["s12"]
-
-
-distance_in_metersUdf = f.udf(distance_in_meters, t.DoubleType())
-
-
-#%%
-
-
-def drop_columns_and_mappify_tags(df: DataFrame) -> DataFrame:
-    return df.drop("uid", "user_sid", "changeset", "version").withColumn(
-        "tags", tupleUdf(f.col("tags"))
-    )
 
 
 def repl():
@@ -79,168 +37,52 @@ def repl():
 
 s = SparkSession.builder.config(conf=conf).getOrCreate()
 s.sparkContext.setCheckpointDir("hdfs:///spark_checkpoints")
-s.sparkContext.setLogLevel("INFO")
+# s.sparkContext.setLogLevel("INFO")
+# s.sparkContext.setLogLevel("WARN")
 
 g.init_sql(s)
 pp(s.sparkContext.getConf().getAll())
-COMBINED_TAG_FILTER = (
-    f.col("tags.amenity").isin(
-        [
-            "bar",
-            "biergarten",
-            "cafe",
-            "fast_food",
-            "food_court",
-            "ice_cream",
-            "pub",
-            "restaurant",
-            "arts_centre",
-            "casino",
-            "cinema",
-            "community_centre",
-            "conference_centre",
-            "events_venue",
-            "pharmacy",
-            "planetarium",
-            "studio",
-            "gym",
-            "internet_cafe",
-        ]
-    )
-    | f.col("tags.leisure").isin(
-        [
-            "adult_gaming_centre",
-            "amusement_arcade",
-            "beach_resort",
-            "bowling_alley",
-            "disc_golf_course",
-            "dog_park",
-            "escape_game",
-            "fitness_centre",
-            "golf_course",
-            "hackerspace",
-            "ice_rink",
-            "miniature_golf",
-            "resort",
-            "sports_centre",
-            "sports_hall",
-            "swimming_area",
-            "swimming_pool",
-            "water_park",
-        ]
-    )
-    | f.col("tags.shop").isNotNull()
-) & f.col("tags.name").isNotNull()
 
 
-def prepare_and_filter_nodes():
-    s.read.parquet("hdfs:///data/lodzkie.osm.pbf.node.parquet").transform(
-        drop_columns_and_mappify_tags
-    ).createOrReplaceTempView("nodes")
-    nodes = s.sql(
-        """select *,st_point(latitude,longitude) as geom from nodes"""
-    ).repartitionByRange(16, "id")
-    nodes.write.parquet(HDFS_BASE_ADDRESS + "/nodes")
-    nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/nodes")
-
-    ways = s.read.parquet(
-        "hdfs:///data/lodzkie.osm.pbf.way.parquet"
-    ).repartitionByRange(16, "id")
-    ways = ways.transform(drop_columns_and_mappify_tags)
-    ways = (
-        ways.withColumn("nodes", nodesUdf(f.col("nodes")))
-        .withColumn("nid", f.explode(f.map_values(f.col("nodes"))))
-        .repartitionByRange(16, "nid")
-    )
-    ways.write.parquet(HDFS_BASE_ADDRESS + "/ways_with_nids")
-    ways = s.read.parquet(HDFS_BASE_ADDRESS + "/ways_with_nids")
-
-    nodes = (
-        nodes.alias("n")
-        .join(ways.alias("w"), nodes.id == ways.nid, how="FULL")
-        .withColumn("tags_concat", f.map_concat("n.tags", "w.tags"))
-        .select("n.*")
-        .withColumnRenamed("tags_concat", "tags")
-        .filter(COMBINED_TAG_FILTER)
-        .repartitionByRange(16, "id")
-    )
-    nodes.write.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
-
-
-# TODO: update to use unfiltered nodes
-def filter_city_centers():
-    city_centers = s.sql(
-        """select * from nodes where (nodes.tags.place == "village" or nodes.tags.plade == "town" or nodes.tags.place == "city") and tags.name is not null """
-    )
-    city_centers.write.parquet(HDFS_BASE_ADDRESS + "/city_centers")
-
-
-def prepare_test_data():
-    test_data = s.read.parquet("hdfs:///test_data")
-    test_data.createOrReplaceTempView("test_data")
-    test_data = s.sql(
-        """select *,st_point(latitude,longitude) as geom from test_data"""
-    ).repartitionByRange(16, "id")
-    test_data.write.parquet(HDFS_BASE_ADDRESS + "/geom_test_data")
-
-
-# Use theese 3 functions to load and prepare data
-
-# prepare_and_filter_nodes()
-# s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered").createOrReplaceTempView("nodes")
-# filter_city_centers()
-# prepare_test_data()
+def build_and_test(r, model):
+    testdata = r.map(lambda p: (p[0], p[1]))
+    predictions = model.predictAll(testdata).map(lambda r: ((r[0], r[1]), r[2]))
+    ratesAndPreds = r.map(lambda r: ((r[0], r[1]), r[2])).join(predictions)
+    MSE = ratesAndPreds.map(lambda r: (r[1][0] - r[1][1]) ** 2).mean()
+    print("Mean Squared Error = " + str(MSE))
 
 
 #%%
-s.sparkContext.setLogLevel("WARN")
+
+all_names = (
+    s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
+    .withColumn("name", f.col("tags.name"))
+    .select("name")
+    .distinct()
+    .withColumn("count", f.lit(0))
+    .withColumnRenamed("name", "aname")
+    .withColumn("nid", f.monotonically_increasing_id())
+)
+
+rank_df = (
+    s.read.parquet("/recommender_data")
+    .select(["nid", "ntags", "npoint"])
+    .withColumn("name", f.col("ntags.name"))
+    .groupBy("name")
+    .count()
+    .orderBy("count", ascending=False)
+    .alias("c")
+    .join(all_names.alias("an"), f.col("c.name") == f.col("an.aname"), "right")
+    .selectExpr(["c.count as count", "nid as id"])
+    .fillna(0)
+    .orderBy("count", ascending=False)
+    .withColumn("user", f.lit(0))
+)
+
+r = rank_df.rdd.map(lambda row: Rating(row[2], row[1], row[0]))
 repl()
 
-nodes = s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
-nodes.createOrReplaceTempView("nodes")
-#%%
+a = ALS.train(r, 10, 10)
+build_and_test(r, a)
+a.save(s.sparkContext, "/als_built")
 
-test_data = s.read.parquet(HDFS_BASE_ADDRESS + "/geom_test_data")
-test_data.createOrReplaceTempView("test_data")
-
-
-joined = (
-    nodes.alias("n")
-    .join(test_data.alias("td"), how="cross")
-    .selectExpr(
-        [
-            "n.id as nid",
-            "n.tags as ntags",
-            "n.geom as npoint",
-            "td.id as tid",
-            "td.accuracy as taccuracy",
-            "td.altitude as taltitude",
-            "td.geom as tpoint",
-        ]
-    )
-)
-joined.write.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
-joined = s.read.parquet(HDFS_BASE_ADDRESS + "/distances_temp")
-joined.createOrReplaceTempView("joined")
-
-
-s.sql(
-    """
-select
-    *,
-    st_distance(npoint,tpoint) as latlon_dist
-    from joined
-"""
-).createOrReplaceTempView("distances")
-
-mindist = s.sql(
-    "select *, MIN(latlon_dist) over (partition by tid) as mindist from distances"
-)
-matched = mindist.filter("latlon_dist == mindist").repartitionByRange(16, "nid")
-matched.write.parquet(HDFS_BASE_ADDRESS + "/matched_test_data")
-matched = s.read.parquet(HDFS_BASE_ADDRESS + "/matched_test_data")
-
-close_to_nodes = matched.withColumn(
-    "dist_meters", distance_in_metersUdf(f.col("npoint"), f.col("tpoint"))
-).filter("dist_meters < taccuracy + 3")
-close_to_nodes.write.json("/asd")

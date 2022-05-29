@@ -1,9 +1,5 @@
-from cmath import log
-import traceback
 import geomesa_pyspark as g
 from pyspark.find_spark_home import _find_spark_home as fsh
-import shapely
-import logging
 from executor.udf import *
 
 print("Geomesa Init")
@@ -16,17 +12,14 @@ conf = (
         ],
     )
     .setAppName("getClosest")
-    .set("spark.executor.memory", "14G")
+    .set("spark.executor.memory", "15G")
     .set("spark.executor.cores", "16")
 )
 
-
-from typing import Dict, Optional, Sequence
-from pyspark.sql import SparkSession, Row, types as t, DataFrame
+from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 from pyspark.sql.utils import AnalysisException
 from pprint import pp
-
 
 HDFS_BASE_ADDRESS = "hdfs:///data_checkpoints/"
 
