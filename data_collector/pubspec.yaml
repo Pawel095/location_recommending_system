@@ -1,0 +1,63 @@
+name: data_collector
+description: A new Flutter project.
+
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.1 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  equatable: ^2.0.3
+  pedantic: ^1.11.1
+  geolocator: ^8.0.5
+  http: ^0.13.4
+  flutter_logs: ^2.1.5
+  flutter_bloc: ^8.0.1
+  bloc: ^8.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  environment_config: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+environment_config:
+  path: environment.dart
+  class: Environment
+  dev_extension: dev
+  fields:
+    # Settable variables
+    DEBUG:
+      type: bool
+      default: false
+    BACKEND_URL:
+      pattern: '"__VALUE__"'
+      type: String
+    SCANPOINT_URL:
+      pattern: 'BACKEND_URL + "__VALUE__"'
+      type: String
+      default: "/scanpoint"
+    # DEBUG OVERRIDE VARIABLES
+    initialRoute:
+      pattern: '"__VALUE__"'
+      type: String
+      default: "/"
+
+  extensions:
+    dev:
+      fields:
+        # Settable Variables
+        DEBUG:
+          default: true
+        BACKEND_URL:
+          default: http://192.168.2.7:8000
+        # DEBUG OVERRIDE VARIABLES
+        initialRoute:
+          default: "/home"
