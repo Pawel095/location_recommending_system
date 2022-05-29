@@ -1,4 +1,4 @@
-FROM python:3.9.12-bullseye as build-geomesa
+FROM python:3.9.13-bullseye as build-geomesa
 
 RUN apt update && apt install zip unzip -y
 
