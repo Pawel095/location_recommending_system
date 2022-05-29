@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  postgres:
+    restart: always
+    build:
+      context: ./postgres
+    command: -c 'config_file=/postgresql.conf'
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=fastapi
+      - POSTGRES_DB=data_collection_db
+      - POSTGRES_PASSWORD=passwd
+    volumes:
+      - type: volume
+        source: pg-data
+        target: /var/lib/postgresql/data/
+      # - type: bind
+      #   source: ./postgres/pgsql-data
+      #   target: /var/lib/postgresql/data/
+  fastapi:
+    restart: always
+    build: ./api
+    command:
+      [
+        "uvicorn",
+        "main:app",
+        "--host",
+        "0.0.0.0",
+        "--reload"
+      ]
+    environment:
+      - DB_USER=fastapi
+      - DB_PASS=passwd
+      - DB_URL=postgres
+      - DB_DBNAME=data_collection_db
+    ports:
+      - 8000:8000
+
+
+volumes:
+  pg-data:

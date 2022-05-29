@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "data_collection_api"
+version = "0.1.0"
+description = ""
+authors = ["Paweł Pankiewicz <239565@edu.p.lodz.pll>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.68.1"
+uvicorn = {extras = ["standard"], version = "^0.17.6"}
+psycopg2-binary = "^2.9.1"
+python-decouple = "^3.4"
+SQLAlchemy = "^1.4.23"
+
+
+[tool.poetry.dev-dependencies]
+black = "^21.8b0"
+isort = "^5.9.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+force_single_line = true
+
+
+[tool.black]
+line-length = 95
+exclude = '''
+(
+  /(
+      \.eggs        
+    | \.git          
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''

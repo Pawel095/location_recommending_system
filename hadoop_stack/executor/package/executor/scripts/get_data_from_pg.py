@@ -10,13 +10,13 @@ def repl():
 
 
 def run():
-    appName = "PySpark PostgreSQL Example - via psycopg2"
-    master = "local"
+    appName = "test data import"
+    master = "yarn"
 
     spark = SparkSession.builder.master(master).appName(appName).getOrCreate()
 
     engine = create_engine(
-        "postgresql+psycopg2://fastapi:passwd@192.168.2.1:5432/random_demos?client_encoding=utf8"
+        "postgresql+psycopg2://fastapi:passwd@192.168.2.7:5432/data_collection_db?client_encoding=utf8"
     )
     pdf = pd.read_sql('select * from "GpsScanpoint"', engine)
 

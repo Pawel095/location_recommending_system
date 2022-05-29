@@ -30,6 +30,7 @@ build_image_no_cache(){
 }
 
 REG_ADDR=192.168.2.1:5000
+# pip install poetry docker-compose
 
 while [ $# -gt 0 ]; do
     case $1 in 
