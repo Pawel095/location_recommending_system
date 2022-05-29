@@ -8,7 +8,6 @@ authors = ["Paweł Pankiewicz <239565@edu.p.lodz.pl>"]
 python = "^3.9"
 pyspark = "^3.2.1"
 platformdirs = "^2.5.1"
-hdfs = "^2.7.0"
 ptpython = "^3.0.20"
 Shapely = "^1.8.1"
 psycopg2-binary = "^2.9.3"
@@ -19,12 +18,13 @@ geographiclib = "^2.0"
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
 # geomesa is in dev only to fix build errors in dockerfile, otherwise pip fails to install
-geomesa-pyspark = {path = "geomesa_pyspark-3.4.0.tar.gz"}
+geomesa-pyspark = { path = "geomesa_pyspark-3.4.0.tar.gz" }
 
 [tool.poetry.scripts]
-pyspark_shell="executor.scripts.get_repl:run"
-get_test_data="executor.scripts.get_data_from_pg:run"
-preprocess_data="executor.scripts.preprocess_data:run"
+pyspark_shell = "executor.scripts.get_repl:run"
+get_test_data = "executor.scripts.get_data_from_pg:run"
+preprocess_data = "executor.scripts.preprocess_data:run"
+build_als = "executor.scripts.build_als:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
