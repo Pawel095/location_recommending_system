@@ -64,6 +64,6 @@ def run():
 
     r = rank_df.rdd.map(lambda row: Rating(row[2], row[1], row[0]))
 
-    a = ALS.train(r, 10, 10)
+    a = ALS.trainImplicit(r, 10, 10, blocks=16)
     build_and_test(r, a)
     a.save(s.sparkContext, "/als_built")

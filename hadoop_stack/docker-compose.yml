@@ -112,6 +112,27 @@ services:
         constraints:
           - node.labels.executor != no
 
+  recommender_api:
+    restart: unless-stopped
+    build:
+      context: ./recommender_api
+    image: 192.168.2.1:5000/recommender_api
+    command: start_api_server
+    environment:
+      SERVICE_PRECONDITION: "historyserver:8188"
+    ports:
+      - 8888:8888
+    env_file:
+      - ./hadoop.env
+    networks:
+      - hadoop-net
+    volumes:
+      - ./recommender_api:/app
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.exit==yes"
+
 networks:
   hadoop-net:
     attachable: true

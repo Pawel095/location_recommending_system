@@ -5,25 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "data_collection_stack",
-            "type": "python",
-            "request": "launch",
-            "module": "uvicorn",
-            "cwd": "${workspaceFolder}/data_collection_stack/api",
-            "args": [
-                "main:app",
-                "--host",
-                "0.0.0.0",
-                "--reload"
-            ],
-            "jinja": false
-        },
-        {
             "name": "recommender_api",
             "type": "python",
             "request": "launch",
             "module": "uvicorn",
-            "cwd": "${workspaceFolder}/hadoop_stack/recommender_api/",
             "args": [
                 "recommender_api.api:app",
                 "--host",

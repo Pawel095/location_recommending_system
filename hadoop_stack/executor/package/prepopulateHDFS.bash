@@ -6,7 +6,7 @@ JAR_ARCHIVE="jars.tar"
 HDFS_MAP_PATH="/data"
 MAP_FOLDER="map/"
 
-get_test_data
+# get_test_data
 
 echo Making folders
 hdfs dfs -mkdir -p $HDFS_MAP_PATH
