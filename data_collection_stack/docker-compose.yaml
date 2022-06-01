@@ -5,6 +5,7 @@ services:
     restart: always
     build:
       context: ./postgres
+    image: 192.168.2.1:5000/data_collection_postgres
     command: -c 'config_file=/postgresql.conf'
     ports:
       - 5432:5432
@@ -19,9 +20,14 @@ services:
       # - type: bind
       #   source: ./postgres/pgsql-data
       #   target: /var/lib/postgresql/data/
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.exit==yes"
   fastapi:
     restart: always
     build: ./api
+    image: 192.168.2.1:5000/data_collection_api
     command:
       [
         "uvicorn",
@@ -37,6 +43,10 @@ services:
       - DB_DBNAME=data_collection_db
     ports:
       - 8000:8000
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.exit==yes"
 
 
 volumes:
