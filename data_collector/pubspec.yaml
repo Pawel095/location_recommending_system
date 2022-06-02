@@ -18,6 +18,7 @@ dependencies:
   flutter_logs: ^2.1.5
   flutter_bloc: ^8.0.1
   bloc: ^8.0.3
+  flutter_osm_plugin: ^0.34.0+1
 
 dev_dependencies:
   flutter_test:
@@ -37,13 +38,20 @@ environment_config:
     DEBUG:
       type: bool
       default: false
-    BACKEND_URL:
+    DATA_COLLECTION_API_URL:
       pattern: '"__VALUE__"'
       type: String
-    SCANPOINT_URL:
-      pattern: 'BACKEND_URL + "__VALUE__"'
+    DATA_COLLECTION_UPLOAD_ENDPOINT:
+      pattern: '"$DATA_COLLECTION_API_URL/__VALUE__"'
       type: String
       default: "/scanpoint"
+    RECOMENDATION_API_URL:
+      pattern: '"__VALUE__"'
+      type: String
+    RECOMENDATION_ENDPOINT_URL:
+      pattern: '"$RECOMENDATION_API_URL/__VALUE__"'
+      type: String
+      default: "/0"
     # DEBUG OVERRIDE VARIABLES
     initialRoute:
       pattern: '"__VALUE__"'
@@ -56,8 +64,10 @@ environment_config:
         # Settable Variables
         DEBUG:
           default: true
-        BACKEND_URL:
+        DATA_COLLECTION_API_URL:
           default: http://192.168.2.7:8000
+        RECOMENDATION_API_URL:
+          default: http://192.168.2.7:8888
         # DEBUG OVERRIDE VARIABLES
         initialRoute:
-          default: "/home"
+          default: "/UserPage"
