@@ -16,6 +16,7 @@ conf = (
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 from pyspark.mllib.recommendation import ALS, Rating
+from pyspark.sql.utils import AnalysisException
 from pprint import pp
 
 HDFS_BASE_ADDRESS = "hdfs:///data_checkpoints/"
@@ -46,6 +47,11 @@ def run():
         .withColumnRenamed("name", "aname")
         .withColumn("nid", f.monotonically_increasing_id())
     )
+    try:
+        all_names.write.parquet("/recomender_name_id_map")
+    except AnalysisException:
+        filename = "/recomender_name_id_map"
+        print(f"File exists: {filename=}")
 
     rank_df = (
         s.read.parquet("/recommender_data")
