@@ -42,16 +42,16 @@ environment_config:
       pattern: '"__VALUE__"'
       type: String
     DATA_COLLECTION_UPLOAD_ENDPOINT:
-      pattern: '"$DATA_COLLECTION_API_URL/__VALUE__"'
+      pattern: '"$DATA_COLLECTION_API_URL__VALUE__"'
       type: String
       default: "/scanpoint"
     RECOMENDATION_API_URL:
       pattern: '"__VALUE__"'
       type: String
     RECOMENDATION_ENDPOINT_URL:
-      pattern: '"$RECOMENDATION_API_URL/__VALUE__"'
+      pattern: '"$RECOMENDATION_API_URL__VALUE__"'
       type: String
-      default: "/0"
+      default: "/recomend"
     # DEBUG OVERRIDE VARIABLES
     initialRoute:
       pattern: '"__VALUE__"'
@@ -70,4 +70,4 @@ environment_config:
           default: http://192.168.2.7:8888
         # DEBUG OVERRIDE VARIABLES
         initialRoute:
-          default: "/UserPage"
+          default: "/"

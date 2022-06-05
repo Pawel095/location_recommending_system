@@ -32,7 +32,11 @@ class HomePage extends StatelessWidget {
               TextButton(
                 onPressed: () => askForLocationPermissions(),
                 child: const Text("Request Location Permission"),
-              )
+              ),
+              TextButton(
+                  onPressed: () => Navigator.pushNamed(
+                      context, AppRouter.RECOMENDATION_PAGE),
+                  child: Text("Recomendation screen"))
             ],
           ),
         ),
