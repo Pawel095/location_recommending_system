@@ -1,6 +1,6 @@
 FROM hadoop-base:local_latest
 
-HEALTHCHECK --start-period=300s --interval=10s --retries=5 CMD curl -f http://localhost:8888/healthcheck || exit 1
+HEALTHCHECK --start-period=300s --retries=5 CMD curl -f http://localhost:8888/healthcheck || exit 1
 
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
