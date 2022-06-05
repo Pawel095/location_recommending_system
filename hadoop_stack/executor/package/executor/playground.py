@@ -54,6 +54,8 @@ def build_and_test(r, model):
 
 #%%
 
+repl()
+
 all_names = (
     s.read.parquet(HDFS_BASE_ADDRESS + "/n_filtered")
     .withColumn("name", f.col("tags.name"))
@@ -63,6 +65,7 @@ all_names = (
     .withColumnRenamed("name", "aname")
     .withColumn("nid", f.monotonically_increasing_id())
 )
+all_names.write.parquet("/recomender_name_id_map")
 
 rank_df = (
     s.read.parquet("/recommender_data")
