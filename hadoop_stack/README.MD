@@ -11,3 +11,4 @@ To acquire the map use <https://github.com/adrianulbona/osm-parquetizer> do buil
 3. `getExecutorShell.bash` and `prepopulateHDFS.bash` to upload required files to the hdfs
 
 Run `getExecutorShell.bash` to get the shell inside the docker network, to run pyspark apps
+To build the models, about 15 gigabytes of ram and about 130 gb of disk space is required. SSD drive reccomended

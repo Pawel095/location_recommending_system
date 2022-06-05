@@ -47,11 +47,6 @@ def run():
         .withColumnRenamed("name", "aname")
         .withColumn("nid", f.monotonically_increasing_id())
     )
-    try:
-        all_names.write.parquet("/recomender_name_id_map")
-    except AnalysisException:
-        filename = "/recomender_name_id_map"
-        print(f"File exists: {filename=}")
 
     rank_df = (
         s.read.parquet("/recommender_data")
@@ -70,6 +65,6 @@ def run():
 
     r = rank_df.rdd.map(lambda row: Rating(row[2], row[1], row[0]))
 
-    a = ALS.trainImplicit(r, 10, 10, blocks=16)
+    a = ALS.train(r, 10, 10, blocks=16)
     build_and_test(r, a)
     a.save(s.sparkContext, "/als_built")

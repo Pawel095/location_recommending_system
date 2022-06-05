@@ -11,8 +11,8 @@ conf = (
             "/opt/geomesa-fs_2.12-3.4.0/dist/spark/geomesa-fs-spark-runtime_2.12-3.4.0.jar",
         ],
     )
-    .setAppName("getClosest")
-    .set("spark.executor.memory", "15G")
+    .setAppName("data preprocessing")
+    .set("spark.executor.memory", "16G")
     .set("spark.executor.cores", "16")
 )
 
