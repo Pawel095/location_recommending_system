@@ -19,7 +19,6 @@ dependencies:
   flutter_bloc: ^8.0.1
   bloc: ^8.0.3
   flutter_osm_plugin: ^0.34.0+1
-  wkt_parser: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -71,4 +70,4 @@ environment_config:
           default: http://192.168.2.7:8888
         # DEBUG OVERRIDE VARIABLES
         initialRoute:
-          default: "/UserPage"
+          default: "/"
