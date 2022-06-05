@@ -11,5 +11,5 @@ class Environment {
   static const String RECOMENDATION_ENDPOINT_URL =
       "$RECOMENDATION_API_URL/recomend";
 
-  static const String initialRoute = "/UserPage";
+  static const String initialRoute = "/";
 }
