@@ -1,10 +1,10 @@
-from typing import Dict, Optional, Sequence
+from typing import Callable, Dict, Optional, Sequence
 from pyspark.sql import Row, types as t, DataFrame
 import shapely.geometry
 import pyspark.sql.functions as f
 
 
-def toMap(key: str, value: str, decode=True) -> Optional[Dict[str, str]]:
+def toMap(key: str, value: str, decode=True) -> Callable[..., Optional[Dict[str, str]]]:
     def __proc(tupleArray: Sequence[Row]):
         if tupleArray is None:
             return
