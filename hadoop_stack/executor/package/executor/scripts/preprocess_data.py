@@ -185,11 +185,22 @@ def run():
     print("calculating distances")
     try:
         s.sql(
-            "select *, st_distance(npoint,tpoint) as latlon_dist from joined"
+            """
+            select 
+                *, 
+                st_distance(npoint,tpoint) as latlon_dist 
+            from 
+                joined"""
         ).createOrReplaceTempView("distances")
-
         mindist = s.sql(
-            "select *, MIN(latlon_dist) over (partition by tid) as mindist from distances"
+            """
+            select 
+                *, 
+                MIN(latlon_dist) 
+                    over (partition by tid) 
+                    as mindist 
+            from
+                distances"""
         )
         matched = mindist.filter("latlon_dist == mindist").repartitionByRange(16, "nid")
         matched.write.parquet(HDFS_BASE_ADDRESS + "/matched_test_data")

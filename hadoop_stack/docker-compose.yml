@@ -94,25 +94,25 @@ services:
         constraints:
           - "node.labels.hdfs==not-datastore"
 
-  # executor:
-  #   build:
-  #     context: ./executor
-  #   image: 192.168.2.1:5000/executor
-  #   volumes:
-  #     - ./executor/package:/app
-  #     - /tmp/.X11-unix:/tmp/.X11-unix:rw
-  #   environment:
-  #     - DISPLAY=:0
-  #     - QT_X11_NO_MITSHM=1
-  #   env_file:
-  #     - hadoop.env
-  #   networks:
-  #     - hadoop-net
-  #   deploy:
-  #     mode: global
-  #     placement:
-  #       constraints:
-  #         - node.labels.executor != no
+  executor:
+    build:
+      context: ./executor
+    image: 192.168.2.1:5000/executor
+    volumes:
+      - ./executor/package:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DISPLAY=:0
+      - QT_X11_NO_MITSHM=1
+    env_file:
+      - hadoop.env
+    networks:
+      - hadoop-net
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.executor != no
 
   recommender_api:
     restart: unless-stopped
