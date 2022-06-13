@@ -8,9 +8,9 @@ conf = (
             "/opt/geomesa-fs_2.12-3.4.0/dist/spark/geomesa-fs-spark-runtime_2.12-3.4.0.jar",
         ],
     )
-    .setAppName("getClosest")
-    .set("spark.executor.memory", "15G")
-    .set("spark.executor.cores", "16")
+    .setAppName("Build ALS")
+    .set("spark.executor.memory", "6G")
+    .set("spark.executor.cores", "4")
 )
 
 from pyspark.sql import SparkSession
@@ -68,3 +68,7 @@ def run():
     a = ALS.train(r, 10, 10, blocks=16)
     build_and_test(r, a)
     a.save(s.sparkContext, "/als_built")
+
+
+if __name__ == "__main__":
+    run()

@@ -83,8 +83,8 @@ services:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     ports:
       - 8188:8188
-    # volumes:
-    #   - historyserver:/hadoop/yarn/timeline
+    volumes:
+      - historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
     networks:

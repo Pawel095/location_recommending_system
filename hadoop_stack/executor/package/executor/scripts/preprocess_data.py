@@ -12,7 +12,7 @@ conf = (
         ],
     )
     .setAppName("data preprocessing")
-    .set("spark.executor.memory", "16G")
+    .set("spark.executor.memory", "15G")
     .set("spark.executor.cores", "16")
 )
 
