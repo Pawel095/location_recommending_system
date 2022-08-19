@@ -47,6 +47,7 @@ def run():
         .withColumnRenamed("name", "aname")
         .withColumn("nid", f.monotonically_increasing_id())
     )
+    all_names.write.parquet("/recomender_name_id_map")
 
     rank_df = (
         s.read.parquet("/recommender_data")

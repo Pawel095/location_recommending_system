@@ -1,3 +1,4 @@
+from glob import glob
 import geomesa_pyspark as g
 from pyspark.find_spark_home import _find_spark_home as fsh
 from typing import Union
@@ -63,24 +64,28 @@ def stop_spark():
 
 
 def get_spark():
+    global s
     if not SPARK_STARTED:
         raise AttributeError
     return s
 
 
 def get_recmap():
+    global recmap
     if not SPARK_STARTED:
         raise AttributeError
     return recmap
 
 
 def get_nodes():
+    global nodes
     if not SPARK_STARTED:
         raise AttributeError
     return nodes
 
 
 def model():
+    global recmodel
     if not SPARK_STARTED:
         raise AttributeError
     return recmodel

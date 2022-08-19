@@ -3,3 +3,4 @@ jars
 map
 parquetMapped
 geomesa_pyspark*
+hdfs_bak
