@@ -106,6 +106,7 @@ def prepare_and_filter_nodes():
             ways.withColumn("nodes", nodesUdf(f.col("nodes")))
             .withColumn("nid", f.explode(f.map_values(f.col("nodes"))))
             .repartitionByRange(16, "nid")
+            .filter(COMBINED_TAG_FILTER)
         )
         ways.write.parquet(HDFS_BASE_ADDRESS + "/ways_with_nids")
     except AnalysisException:
