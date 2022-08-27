@@ -16,7 +16,6 @@ conf = (
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 from pyspark.mllib.recommendation import ALS, Rating
-from pyspark.sql.utils import AnalysisException
 from pprint import pp
 
 HDFS_BASE_ADDRESS = "hdfs:///data_checkpoints/"
@@ -29,10 +28,10 @@ g.init_sql(s)
 pp(s.sparkContext.getConf().getAll())
 
 
-def build_and_test(r, model):
-    testdata = r.map(lambda p: (p[0], p[1]))
+def test_model(rank_rdd, model):
+    testdata = rank_rdd.map(lambda p: (p[0], p[1]))
     predictions = model.predictAll(testdata).map(lambda r: ((r[0], r[1]), r[2]))
-    ratesAndPreds = r.map(lambda r: ((r[0], r[1]), r[2])).join(predictions)
+    ratesAndPreds = rank_rdd.map(lambda r: ((r[0], r[1]), r[2])).join(predictions)
     MSE = ratesAndPreds.map(lambda r: (r[1][0] - r[1][1]) ** 2).mean()
     print("Mean Squared Error = " + str(MSE))
 
@@ -43,7 +42,6 @@ def run():
         .withColumn("name", f.col("tags.name"))
         .select("name")
         .distinct()
-        .withColumn("count", f.lit(0))
         .withColumnRenamed("name", "aname")
         .withColumn("nid", f.monotonically_increasing_id())
     )
@@ -64,10 +62,11 @@ def run():
         .withColumn("user", f.lit(0))
     )
 
-    r = rank_df.rdd.map(lambda row: Rating(row[2], row[1], row[0]))
+    rank_rdd = rank_df.rdd.map(lambda row: Rating(row[2], row[1], row[0]))
+    _ = [print(n) for n in rank_rdd.take(5)]
 
-    a = ALS.train(r, 10, 10, blocks=16)
-    build_and_test(r, a)
+    a = ALS.train(rank_rdd, 10, 10, blocks=16)
+    test_model(rank_rdd, a)
     a.save(s.sparkContext, "/als_built")
 
 
