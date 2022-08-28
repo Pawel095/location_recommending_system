@@ -29,6 +29,7 @@ pp(s.sparkContext.getConf().getAll())
 
 
 def test_model(rank_rdd, model):
+    # https://spark.apache.org/docs/latest/\mllib-collaborative-filtering.html#examples
     testdata = rank_rdd.map(lambda p: (p[0], p[1]))
     predictions = model.predictAll(testdata).map(lambda r: ((r[0], r[1]), r[2]))
     ratesAndPreds = rank_rdd.map(lambda r: ((r[0], r[1]), r[2])).join(predictions)

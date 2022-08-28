@@ -1,6 +1,6 @@
 #!/bin/bash
-
-stack_name=test1
+# test1
+stack_name=lrs
 
 while [ $# -gt 0 ]; do
     case $1 in
