@@ -1,5 +1,5 @@
 from glob import glob
-import geomesa_pyspark as g
+import geomesa_pyspark
 from pyspark.find_spark_home import _find_spark_home as fsh
 from typing import Union
 from pyspark.sql import SparkSession, DataFrame
@@ -33,20 +33,20 @@ def start_spark():
     print("Geomesa Init")
 
     conf = (
-        g.configure(
+        geomesa_pyspark.configure(
             spark_home=fsh(),
             jars=[
                 "/opt/geomesa-fs_2.12-3.4.0/dist/spark/geomesa-fs-spark-runtime_2.12-3.4.0.jar",
             ],
         )
         .setAppName("Recommendation_api_worker")
-        .set("spark.executor.memory", "4G")
+        .set("spark.executor.memory", "2G")
         .set("spark.executor.cores", "4")
     )
 
     # conf = SparkConf().setAppName("api-spark").setMaster("yarn")
     s = SparkSession.builder.config(conf=conf).getOrCreate()
-    g.init_sql(s)
+    geomesa_pyspark.init_sql(s)
     pp(s.sparkContext.getConf().getAll())
     SPARK_STARTED = True
     print("Spark init done")

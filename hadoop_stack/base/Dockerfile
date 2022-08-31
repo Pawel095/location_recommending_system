@@ -62,11 +62,12 @@ ENV GEOMESA_HOME=/opt/geomesa-fs_2.12-3.4.0
 ENV PATH ${GEOMESA_HOME}/bin:$HADOOP_HOME/bin/:$PATH
 
 # COPY --from=build-geomesa /geomesa-build/ /geomesa-build/
+COPY --from=build-geomesa /opt/ /opt/
+
 WORKDIR /packages/
 COPY --from=build-geomesa /packages/ .
 COPY executor-0.1.0-py3-none-any.whl .
 COPY requirements.txt requirements.txt
-COPY --from=build-geomesa /opt/ /opt/
 RUN pip install -r requirements.txt
 
 ADD entrypoint.sh /entrypoint.sh

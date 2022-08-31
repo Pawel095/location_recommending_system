@@ -34,28 +34,33 @@ REG_ADDR=192.168.2.1:5000
 
 while [ $# -gt 0 ]; do
     case $1 in 
+        # Build all images without cache
         --no-cache)
         update_base_packages
         build_image_no_cache
         shift
         ;;
+        # launch bash shell in base image
         -d)
         update_base_packages
         docker build -t hadoop-base:debug ./base
         # docker run --rm -it hadoop-base:debug /bin/bash
         shift
         ;;
+        # build images using cache
         -b)
         update_base_packages
         build_image
         shift
         ;;
+        # push images into the registry
         -p)
         docker tag hadoop-base:local_latest ${REG_ADDR}/hadoop-base:local_latest
         docker image push ${REG_ADDR}/hadoop-base:local_latest
         docker-compose push
         shift
         ;;
+        # pull (get) images from the registry
         -g)
         docker image pull ${REG_ADDR}/hadoop-base:local_latest
         docker-compose pull --no-parallel

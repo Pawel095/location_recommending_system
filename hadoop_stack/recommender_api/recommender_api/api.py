@@ -27,9 +27,7 @@ class StartupHelper:
         print("Healtcheck received, starting spark")
         spark_dep.start_spark()
 
-
 startup_helper = StartupHelper()
-
 
 @app.on_event("startup")
 async def on_startup():
@@ -39,16 +37,16 @@ async def on_startup():
     else:
         asyncio.create_task(startup_helper.run())
 
+@app.get("/healthcheck")
+def healthckeck():
+    startup_helper.healthckeck_received = True
+    return "ok"
 
 @app.on_event("shutdown")
 def shutdown_event():
     spark_dep.stop_spark()
 
 
-@app.get("/healthcheck")
-def healthckeck():
-    startup_helper.healthckeck_received = True
-    return "ok"
 
 
 def processRecomendaton(
@@ -92,7 +90,7 @@ class RecomendationResponse(BaseModel):
 
 
 @app.post("/recomend/{user:int}")
-def index(
+def recommend(
     user: int,
     body: RequestBody,
     recmodel: MatrixFactorizationModel = Depends(spark_dep.model),
