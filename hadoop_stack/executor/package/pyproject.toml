@@ -21,7 +21,7 @@ black = "^22.3.0"
 geomesa-pyspark = { path = "geomesa_pyspark-3.4.0.tar.gz" }
 
 [tool.poetry.scripts]
-pyspark_shell = "executor.scripts.get_repl:run"
+pyspark_shell = "executor.scripts.get_repl:repl"
 get_test_data = "executor.scripts.get_data_from_pg:run"
 preprocess_data = "executor.scripts.preprocess_data:run"
 build_als = "executor.scripts.build_als:run"
