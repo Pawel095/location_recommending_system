@@ -5,7 +5,7 @@ services:
     restart: always
     build:
       context: ./postgres
-    image: 192.168.2.1:5000/data_collection_postgres
+    image: 192.168.2.1:5000/data_collection_postgres:latest
     command: -c 'config_file=/postgresql.conf'
     ports:
       - 5432:5432
@@ -27,7 +27,7 @@ services:
   fastapi:
     restart: always
     build: ./api
-    image: 192.168.2.1:5000/data_collection_api
+    image: 192.168.2.1:5000/data_collection_api:latest
     command:
       [
         "uvicorn",
